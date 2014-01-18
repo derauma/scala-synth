@@ -25,7 +25,7 @@ private[module] class BasicOscillator
 	extends BasicModule{
 	
 	val numberOfEventInputs = 1
-	val numberOfAudioOutpus = 2
+	val numberOfAudioOutputs = 2
 	
 	@Inject var logger :Logger = _
 	

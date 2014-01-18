@@ -1,5 +1,5 @@
 package org.kylerow.scalasynth.audio
 
 trait AudioOutputs {
-	val numberOfAudioOutpus :Int;
+	val numberOfAudioOutputs :Int;
 }
