@@ -4,34 +4,40 @@ import scala.util.parsing.combinator.JavaTokenParsers
 import org.kylerow.scalasynth.midi.Midi
 import org.kylerow.scalasynth.module._
 import org.kylerow.scalasynth.audio._
-import org.kylerow.scalasynth.note._
 
 object SystemParser extends JavaTokenParsers {
 
-  def system: Parser[Midi] = input ~ module ~ output ^^ { case i ~ mod ~ o => i >> mod; i
-  //o.attachSender(mod); i 
-  }
+  def system: Parser[Midi] = input ~ module ~ output ^^ { case i ~ mod ~ o => i >> mod; o.attachSender(mod); i }
   
   def input: Parser[Midi] = "midi" ^^ { case _ => Midi() }
     
-  def module: Parser[BasicModule] = "BasicOscillator(" ~> wave <~ ")" ^^ { case wave => val bm=BasicOscillator("basic_oscillator1")
-		  bm.setWave(bm.sine); bm }
+  def module: Parser[BasicModule] = basic_oscillator
+  
+  def basic_oscillator: Parser[BasicModule] = opt(name) ~ shape ^^ { case name ~ shape => 
+
+    	val bm=BasicOscillator(name.getOrElse("module1"))
+		  val shape1 = shape match {
+		  	case "square" => bm.setWave(bm.square)    
+		  	case "sine" => bm.setWave(bm.sine)    
+		  	case "saw" => bm.setWave(bm.saw)
+  			}
+  		bm
+  }
 
   def output: Parser[Audio] = "audio" ^^ { case _ => Audio() }
     
-  def wave: Parser[String] = "sine"
-
-    def note: Parser[Note] = predefined_note
+  def shape: Parser[String] = "square" | "sine" | "saw"
   
-  def predefined_note: Parser[Note] = ("a4" | "c5" | "d5") ^^ { case "a4" => a4; case "c5" => c5; case "d5" => d5 }
+  def name: Parser[String] = ident <~ ":"
   
-  def parse(text: String) {
+  def apply(text: String): Midi = {
     
-    SystemParser.parseAll(system, text) match {
+    parseAll(system, text) match {
       
-      case Success(midi,_) => midi.playNote(d5)
-      case Failure(msg,_) => println(msg)
-      case Error(msg,_) => println(msg)
+      case Success(midi,_) => midi
+      case Failure(msg,_) => throw new Exception(msg)
+      case Error(msg,_) => throw new Exception(msg)
     }
-  } 
+  }
+
 }
